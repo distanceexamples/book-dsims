@@ -46,7 +46,7 @@ install.packages(needed.packages, repos=myrepo)
 
 In addition to the R packages, there are additional files required by this analysis.  All necessary material are included in a Zip archive file entitled [dsims_study.zip](dsims_study.zip).  When that archive is uncompressed, the directory structure will be created as described.
 
-Examine the other files and folders in the "dsims_study" folder. There are three files starting with the name "Region" and ending with .dbf, .shp and .shx, these files make up the shapefile for the survey region. The `density.surface.robj` file is the density surface for the survey region. The *Survey Transects* folder contains files wth the name "subj_des" describing the shapefile to be used for the subjective design. The *Results* folder contains the results from 999 replications as this can take a good few hours to run. Select the directory that contains these files.
+Examine the other files and folders in the "dsims_study" folder. There are three files starting with the name "Region" and ending with .dbf, .shp and .shx, these files make up the shapefile for the survey region. The `density.robj` file is the density surface for the survey region. The *Survey Transects* folder contains files wth the name "subj_des" describing the shapefile to be used for the subjective design. The *Results* folder contains the results from 999 replications as this can take a good few hours to run. Select the directory that contains these files.
 
 # Creating a new simulation
 
