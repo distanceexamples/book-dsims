@@ -52,10 +52,12 @@ Examine the other files and folders in the "dsims_study" folder. There are three
 
 ## Creating a region object
 
-First we reate the region object using the region shapefile. As there are no strata in this example, you just need to provide a name for your survey region and specify the units (metres, m). 
+First we reate the region object using the region shapefile. As there are no strata in this example, you just need to provide a name for your survey region and specify the units (metres, m) as there is no projection information supplied with this shapefile.  
 
 ```{r makereg, echo=myecho, eval=myeval}
-region <- make.region(region.name = "Survey Region", units = "m", shape = "Region.shp")
+region <- make.region(region.name = "Survey Region", 
+                      units = "m", 
+                      shape = "Region.shp")
 ```
 
 View the resulting object:
@@ -110,7 +112,7 @@ detect <- make.detectability(key.function = "hn",
 
 We first consider the subjective design (Section 11.1.1 of [@Buckland2015b]). The subjective design uses existing paths together with additional transects chosen to achieve a more even coverage of the survey region.
 
-There is no way to specifically tell dsims (in fact the design package dssd) that the design is a subjective design so instead we will define it as a random line transect design. Later when we run the simulation we will point the simulation to a single shapefile containing the transects that we wish to use. 
+There is no specific definition in dsims (in fact the design package **dssd** [@dssdpkg]) for subjective designs but we can instead define it as a random line transect design. When we run the survey or simulation we will then point to the shapefile containing the transects that we wish to use. 
 
 ```{r subjpath, echo=myecho, eval=myeval, comment=NA}
 subjective.design <- make.design(transect.type = "line", 
@@ -133,7 +135,7 @@ ds.analyses <- make.ds.analysis(dfmodel = list(~1, ~1),
 
 ## Creating the simulation object
 
-We can finally put it all together and have a look at some example populations, transects and survey data. Set the number of repetitions (reps) to be fairly low initially to avoid long run times. For the subjective design, specify that the same set of transects is to be used in each replicate, `single.transect.set = TRUE`.
+We can finally put it all together and have a look at some example populations, transects and survey data. Set the number of repetitions (reps) to be fairly low initially to avoid long run times.
 
 ```{r simobj, echo=myecho, eval=myeval}
 simulation.subjective <- make.simulation(reps = 10, 
@@ -143,7 +145,7 @@ simulation.subjective <- make.simulation(reps = 10,
                                          ds.analysis = ds.analyses)
 ```
 
-Before running the simulation, you can check to see that it is doing what you want by using the run.survey function to create an instance of a single simulated survey based on the simulation setup. At this point given that we want to use a set of pre-created transects we will need to specify the shapefile name to use.
+Before running the simulation, you can check to see that it is doing what you want by using the run.survey function to create an instance of a single simulated survey based on the simulation setup. At this point given that we want to use a set of pre-created transects we will need to specify the shapefile to use.
 
 ```{r simproperties, eval=myeval, echo=myecho, fig.retina=4, fig.height=6, fig.width=6, layout="l-body-outset"}
 # Get the 
@@ -155,9 +157,7 @@ survey <- run.survey(simulation.subjective,
 plot(survey, region)
 ```
 
-If the previous plots lead you to believe you have properly parameterised your simulation, it is time to run it. Be patient, as it will take a few minutes to complete, even though there are only 10 replicates.
-
-Note that now we need to tell it to use our subjective design transects for the simulation (otherwise it will generate randomly placed lines).
+If the previous plots lead you to believe you have properly parameterised your simulation, it is time to run it. Be patient, as it will take a few minutes to complete, even though there are only 10 replicates. Again we need to supply the path to our subjective design transects for the simulation (otherwise it will generate randomly placed lines).
 
 ```{r runsim, echo=myecho, eval=myeval, warning=FALSE}
 simulation.subjective.run  <- run.simulation(simulation.subjective, 
@@ -180,7 +180,7 @@ There is also a `summary()` function for simulation results objects that provide
 
 # On to randomised designs
 
-You will need to create 2 new simulations each with a new design object, one for the parallel design and one for the zigzag design. The other objects (region, density, population description etc.) should not be changed. Here is how to do it for the parallel design. Note, we will let dsims create the transects based on the design using the dssd package so we no longer need to supply a path to the shapefile(s) when we run the survey or simulation.
+You will need to create 2 new simulations each with a new design object, one for the parallel design and one for the zigzag design. The other objects (region, density, population description etc.) should not be changed. Here is how to do it for the parallel design. As these randomised designs can be generated automatically in R using the dssd package (via dsims), we no longer need to supply a the shapefile(s) when we run the survey or simulation.
 
 ```{r parallel, echo=myecho, eval=myeval, warning=FALSE}
 parallel.design <- make.design(transect.type = "line", 
@@ -198,9 +198,9 @@ simulation.parallel <- make.simulation(reps = 999,
                                        ds.analysis = ds.analyses)
 ```
 
-The code does not complete the process of analysing and summarising the simulation of systematic parallel line transects.  The user can complete this investigation.
+The code does not complete the process of analysing and summarising the simulation of systematic parallel line transects.  The user can complete this investigation. The parameterisation of the zigzag design should be set up as shown below.
 
-```{r zigzag, echo=FALSE, eval=FALSE, warning=FALSE}
+```{r zigzag, echo=myecho, eval=myeval, warning=FALSE}
 zigzag.design <- make.design(transect.type = "line", 
                              design = "eszigzag", 
                              region = region, 
