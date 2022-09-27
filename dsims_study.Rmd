@@ -30,7 +30,7 @@ opts_chunk$set(
 )
 ```
 
-This case study shows you how to use the R package **dsims** [@dsimspkg] to compare the performance of different survey designs.  We will replicate the analyses of Sections 3.5.2 and 11.1.1 of [@Buckland2015b].
+This case study shows you how to use the R package **dsims** [@dsimspkg] to compare the performance of different survey designs.  We will replicate the analyses of Sections 2.5.2 and 11.1.4 of [@Buckland2015b]. These simulations compare the efficiency of the randomised systematic parallel and equal spaced zigzag designs as well as demonstrating how easily bias can be introduced when non-random subjective designs are used.
 
 # Getting started
 
@@ -52,7 +52,7 @@ Examine the other files and folders in the "dsims_study" folder. There are three
 
 ## Creating a region object
 
-First we reate the region object using the region shapefile. As there are no strata in this example, you just need to provide a name for your survey region and specify the units (metres, m) as there is no projection information supplied with this shapefile.  
+First we create the region object using the region shapefile. As there are no strata in this example, you just need to provide a name for your survey region and specify the units (metres, m) as there is no projection information supplied with this shapefile.  
 
 ```{r makereg, echo=myecho, eval=myeval}
 region <- make.region(region.name = "Survey Region", 
@@ -80,11 +80,19 @@ density <- add.hotspot(density, centre = c(0, 2184000), sigma = 18000, amplitude
 plot(density, region)
 ```
 
-Load the predefined density object and view the data that comprise the surface by plotting it. This density surface was created using a combination of adding low and high spots and also calculating density as a function of distance to path (the paths will be shown later in the subjective design). The values obtained from this process were then smoothed by fitting a generalised additive model and predicting to the density grid points. 
+Load the predefined density object and view the data that comprise the surface by plotting it. This density surface was created using a combination of adding low and high spots and also calculating density as a function of distance to path (the paths are shown on the density plot in light blue). The values obtained from this process were then smoothed by fitting a generalised additive model and predicting to the density grid points. 
 
 ```{r loadsurf, echo=myecho, eval=myeval}
 load("density.robj")
-plot(density, region)
+# Save the ggplot object rather than displaying automatically
+density.plot <- plot(density, region)
+
+# Load and add the paths to the density plot
+library(sf)
+library(ggplot2)
+paths <- sf::st_read("Survey_Transects/Paths.shp", quiet = TRUE)
+density.plot +
+  ggplot2::geom_sf(data = paths, mapping = aes(), colour = "light blue", lwd = 1)
 ```
 
 ### Population size
@@ -110,7 +118,7 @@ detect <- make.detectability(key.function = "hn",
 
 ## Creating the survey design object
 
-We first consider the subjective design (Section 11.1.1 of [@Buckland2015b]). The subjective design uses existing paths together with additional transects chosen to achieve a more even coverage of the survey region.
+We first consider the subjective design (Section 11.1.4 of [@Buckland2015b]). The subjective design uses existing paths together with additional transects chosen to achieve a more even coverage of the survey region.
 
 There is no specific definition in dsims (in fact the design package **dssd** [@dssdpkg]) for subjective designs but we can instead define it as a random line transect design. When we run the survey or simulation we will then point to the shapefile containing the transects that we wish to use. 
 
@@ -180,7 +188,7 @@ There is also a `summary()` function for simulation results objects that provide
 
 # On to randomised designs
 
-You will need to create 2 new simulations each with a new design object, one for the parallel design and one for the zigzag design. The other objects (region, density, population description etc.) should not be changed. Here is how to do it for the parallel design. As these randomised designs can be generated automatically in R using the dssd package (via dsims), we no longer need to supply a the shapefile(s) when we run the survey or simulation.
+You will need to create 2 new simulations each with a new design object, one for the parallel design and one for the zigzag design. The spacings of these designs were chosen so that the cyclic line lengths were similar, this would imply that they would have similar costs to complete. The other objects (region, density, population description etc.) should not be changed. Here is how to do it for the parallel design. As these randomised designs can be generated automatically in R using the dssd package (via dsims), we no longer need to supply a the shapefile(s) when we run the survey or simulation.
 
 ```{r parallel, echo=myecho, eval=myeval, warning=FALSE}
 parallel.design <- make.design(transect.type = "line", 
@@ -254,3 +262,10 @@ result.table <- data.frame(subjective, parallel, zigzag,
                            row.names=c("Mean effort(km)", "Mean sample size", "Mean abundance estimate", "Estimated percent bias", "Mean SE of abundance estimate", "SD of abundance estimates"))
 kable(result.table, digits = 1, caption="Simulation results summary for each design.  Estimates based upon 999 simulations with true abundance of 1500 objects.")  
 ```
+
+
+## Discussion
+
+The subjective design is included to demonstrate how easily bias can be introduced using non-random designs. One may have been reassured that the animals did not have a significant response to the paths given that there were a number of detections made along the paths, however including the paths in the survey led to a negative bias of around 18%. 
+
+The systematic parallel design and the equal spaced zigzag design demonstrate the potential trade off between accuracy and precision. These two particular designs both gave cyclic trackline lengths of 845 km indicating they would be of similar cost to complete (assuming on-effort surveying is no more costly than off-effort travel). Systematic parallel line designs give even coverage across the majority of the study region (with the exception of the very edge when minus sampling is used and coverage is slightly lower here). Zigzag designs can be more efficient in terms of maximising the amount of time spent on-effort surveying and therefore can increase precision, however they can also give non-uniform coverage which may potentially lead to bias. In this example, there is very low bias in both designs but we see an improvement in precision for the zigzag design. The results of such comparisons will vary for each individual survey depending on the degree of non-uniform coverage generated by the zigzag design and the distribution of animals within the survey region.
